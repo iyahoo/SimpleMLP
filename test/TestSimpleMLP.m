@@ -5,31 +5,60 @@ end
 function testUnion( testCase )
 % Requier Statistic and Machine Learning Toolbox
     addpath( '../' );
-    addpath( '../utilities' );
-    
+
+    % First column is class label, others are features.
     dataset = load( '../datasets/iris_scaled.csv' );
-    
+
     num_instances = size( dataset, 1 );
-    
+
     train_range = 1 : floor( num_instances * 0.9 );
     test_range  = train_range( end ) + 1 : num_instances;
 
     train_dataset = dataset( train_range, : );
     test_dataset  = dataset( test_range, : );
-    
+
     mlp = SimpleMLP( 'trainX', train_dataset( :, 2 : end ), ...
                      'trainY', train_dataset( :, 1 ), ...
                      'testX',  test_dataset( :, 2 : end ), ...
                      'testY',  test_dataset( :, 1 ), ...
                      'learning_rate', 0.01, ...
+                     'count_hneuron', [3 3], ... % 2 hidden layers
                      'random_seed', 12345, ...
                      'activation_fun', 'relu', ...
-                     'epochs', 300);    
+                     'output_activation_fun', 'sig', ...
+                     'epochs', 300 );
+
     trained_mlp = mlp.train();
-    
-    acc = trained_mlp.trainEvaluation();
-    
-    expected_border = 0.950;
-    
-    verifyTrue( testCase, acc > expected_border );
+
+    train_acc = trained_mlp.trainEvaluation();
+    disp( train_acc );
+    expected_border = 0.980;
+    verifyTrue( testCase, train_acc > expected_border );
+
+    test_acc = trained_mlp.testEvaluation();
+    disp( test_acc );
+    expected_border = 0.980;
+    verifyTrue( testCase, test_acc > expected_border );
+end
+
+function initialParameterTest( testCase )
+    addpath( '../' );
+
+    dataset = load( '../datasets/iris_scaled.csv' );
+
+    num_instances = size( dataset, 1 );
+
+    train_range = 1 : floor( num_instances * 0.9 );
+    test_range  = train_range( end ) + 1 : num_instances;
+
+    train_dataset = dataset( train_range, : );
+    test_dataset  = dataset( test_range, : );
+
+    mlp = SimpleMLP( 'trainX', train_dataset( :, 2 : end ), ...
+                     'trainY', train_dataset( :, 1 ), ...
+                     'testX',  test_dataset( :, 2 : end ), ...
+                     'testY',  test_dataset( :, 1 ));
+
+    verifyEqual( testCase, mlp.learning_rate, 0.01 );
+
 end
