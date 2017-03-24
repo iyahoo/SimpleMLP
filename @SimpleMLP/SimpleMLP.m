@@ -33,7 +33,7 @@ classdef SimpleMLP
         %% state
         is_trained
     end
-    
+
     methods ( Access = public )
         %% Constructor
         function obj = SimpleMLP( varargin )
@@ -46,9 +46,9 @@ classdef SimpleMLP
                                'activation_fun',  'sig', ...
                                'random_seed',   'shuffle' ...
                                );
-            opt = SimpleMLP.optionsMaker( defaults, varargin );
+            options = SimpleMLP.optionsMaker( defaults, varargin );
 
-            obj = obj.initialize( opt );
+            obj = obj.initialize( options );
         end
 
         %% Main functions
@@ -58,7 +58,6 @@ classdef SimpleMLP
                 if rem( c_epoch, 100 ) == 0
                     disp( [ 'Current epoch is ' int2str( c_epoch ) ] );
                 end
-
 
                 for c_inst = 1 : size( obj.trainX, 1 )
                     obj = obj.onePhaseTrain( c_inst );
@@ -77,6 +76,10 @@ classdef SimpleMLP
         function [ acc, RMS ] = evaluation( obj, targetX, targetY )
         % acc: 1 - miss ratio
         % RMS: sqrt( ( sum_i^n( ( output_i - T_i ) ^ 2 ) * 0.5 ) * 2 )
+            assert( isnumeric( targetX ), ...
+                    'targetX is type %s, not numeric', class( targetX ) );
+            assert( isnumeric( targetY ), ...
+                    'targetX is type %s, not numeric', class( targetX ) )
 
             miss_count  = 0;
             RMS         = 0;
@@ -111,6 +114,9 @@ classdef SimpleMLP
 
         function output = predict( obj, input_features )
         %% Return raw outputs of output neurons (e.g. [-0.932 0.83 -0.39])
+            assert( isnumeric( input_features ), ...
+                    'input_features is type %s, not numeric', class( input_features ) );
+
             input_features_added = [ 1 input_features ]; % Add bias
             %% Copy cell `outputs_neuron` to local neurons for prediction
             neurons_output = obj.neurons_output;
@@ -123,13 +129,14 @@ classdef SimpleMLP
                 %% Not output layer
                 if c_layer ~= obj.count_layers
                     neurons_output{ c_layer } = ...
-                        SimpleMLP.activationFunction( neurons_output{ c_layer }, obj.activation_fun );
+                        SimpleMLP.activationFunction( neurons_output{ c_layer }, ...
+                                                      obj.activation_fun );
                     %% Bais' output is 1
                     neurons_output{ c_layer }( 1 ) = 1;
                 else
                     neurons_output{ c_layer } = ...
                         SimpleMLP.activationFunction( neurons_output{ c_layer }, ...
-                                            obj.output_activation_fun );
+                                                      obj.output_activation_fun );
                 end
             end
 
@@ -140,19 +147,19 @@ classdef SimpleMLP
         % Show graph using parameter RMS( 1 : end )
             defaults = struct( 'title_str', ...
                                [ 'RMS: ' class( obj ) ...
-                                ' L = ' int2str( obj.count_hneuron ) ...
-                                ' Epochs = ' int2str( obj.epochs ) ...
-                                ' LearningRate = ' num2str( obj.learning_rate )  ], ...
+                                 ' L = ' int2str( obj.count_hneuron ) ...
+                                 ' Epochs = ' int2str( obj.epochs ) ...
+                                 ' LearningRate = ' num2str( obj.learning_rate )  ], ...
                                'xlabel_str', 'Number of Epochs', ...
                                'ylabel_str', 'RMS', ...
                                'axis_range', [ 0 obj.epochs 0 1 ], ...
                                'save_file_name', '', ...
                                'expansion', 'epsc' ...
                                );
-            [ opt f ] = optionsMaker( defaults, varargin );
+            [ options f ] = optionsMaker( defaults, varargin );
 
             for i = 1 : length( f );
-                eval( [ f{ i }, ' = opt.', f{ i }, ';' ] );
+                eval( [ f{ i }, ' = options.', f{ i }, ';' ] );
             end
 
             figure;
@@ -170,18 +177,25 @@ classdef SimpleMLP
         end
 
         function saveModel( obj, save_file_name )
+            assert( ischar( save_file_name ), ...
+                    'save_file_name is type %s, not char', class( save_file_name ) );
+
             save( [ save_file_name '.mat' ] , 'obj' );
         end
     end
 
     methods ( Access = protected )
-        function obj = initialize( obj, opt )
+        function obj = initialize( obj, options )
         %% Initialize parameters from argments
-            f = fieldnames( opt );
+            assert( isstruct( options ), ...
+                    'options is type %s, not struct', class( options ) );
+
+            f = fieldnames( options );
 
             for i = 1 : length( f );
-                %% e.g. obj.trainX = opt.trainX;
-                eval( ['obj.' f{ i } ' = opt.' f{ i } ';'] );
+                %% Assign parameters to fields of model
+                %% e.g. obj.trainX = options.trainX;
+                eval( ['obj.' f{ i } ' = options.' f{ i } ';'] );
             end
 
             %% Assertion
@@ -280,7 +294,7 @@ classdef SimpleMLP
 
             end
 
-            %% Output weights are counstant 1
+            %% Output layer weights are counstant 1
             obj.weights{ end } = ones( obj.count_neuron_per_layer( end ), 1 );
         end
 
@@ -312,13 +326,13 @@ classdef SimpleMLP
                 if c_layer ~= obj.count_layers
                     obj.neurons_output{ c_layer } = ...
                         SimpleMLP.activationFunction( obj.neurons_output{ c_layer }, ...
-                                            obj.activation_fun );
+                                                      obj.activation_fun );
                     %% When no the last layer, output of biases converted by 1 ( 1 * 1 )
                     obj.neurons_output{ c_layer }( 1 ) = 1;
                 else
                     obj.neurons_output{ c_layer } = ...
                         SimpleMLP.activationFunction( obj.neurons_output{ c_layer }, ...
-                                            obj.output_activation_fun );
+                                                      obj.output_activation_fun );
                 end
             end
         end
@@ -335,7 +349,7 @@ classdef SimpleMLP
             for c_layer = obj.count_layers - 1 : -1 : 1
                 gradient = ...
                     SimpleMLP.activationFunctionDrev( obj.neurons_output{ c_layer + 1 }, ...
-                                            obj.activation_fun );
+                                                      obj.activation_fun );
                 for neuron = 1 : length( obj.backprop_error{ c_layer } )
                     obj.backprop_error{ c_layer }( neuron ) = ...
                         sum( obj.backprop_error{ c_layer + 1 } ...
@@ -348,7 +362,7 @@ classdef SimpleMLP
         function obj = calculateDeltaWeights( obj )
             for c_layer = obj.count_layers : -1 : 2
                 gradient = SimpleMLP.activationFunctionDrev( obj.neurons_output{ c_layer }, ...
-                                                   obj.activation_fun );
+                                                             obj.activation_fun );
                 obj.delta_weights{ c_layer - 1 } = ...
                     obj.delta_weights{ c_layer - 1 } ...
                     + obj.neurons_output{ c_layer - 1 }' ...
@@ -382,11 +396,11 @@ classdef SimpleMLP
         % implemented in file optionsMaker.m
         [ options field_names ] = optionsMaker( defaults, vara );
 
-        % Activation Function 
+        % Activation Function
         y = activationFunction( x, selector );
         y = activationFunctionDrev( x, selector );
     end
-    
+
     methods ( Access = private )
         function assertion( obj )
         %% This is called when a new SimpleMLP class is instantiation

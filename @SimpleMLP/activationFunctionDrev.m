@@ -1,4 +1,10 @@
 function y = activationFunctionDrev( x, selector )
+    assert( isnumeric( x ), ...
+            'x is type %s, not numeric', class( x ) );
+
+    assert( ischar( selector ), ...
+            'selector is type %s, not numeric', class( selector ) );
+
     switch lower( selector )
       case { 'sig', 'sigmoid' }
         y = x .* ( 1 - x );
