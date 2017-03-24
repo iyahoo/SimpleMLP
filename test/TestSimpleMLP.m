@@ -28,6 +28,8 @@ function testUnion( testCase )
                      'output_activation_fun', 'sig', ...
                      'epochs', 300 );
 
+    % You have to call train() yourself
+    % Do not forget to assign trained object.
     trained_mlp = mlp.train();
 
     train_acc = trained_mlp.trainEvaluation();
@@ -59,6 +61,34 @@ function initialParameterTest( testCase )
                      'testX',  test_dataset( :, 2 : end ), ...
                      'testY',  test_dataset( :, 1 ));
 
+    % You can see default parameters in SimpleMLP.m Line 40 - 47
     verifyEqual( testCase, mlp.learning_rate, 0.01 );
+    verifyEqual( testCase, mlp.count_hneuron, 5 );
+    verifyEqual( testCase, mlp.epochs, 500 );
+end
 
+function predictionTest( testCase )
+    addpath( '../' );
+
+    dataset = load( '../datasets/iris_scaled.csv' );
+
+    num_instances = size( dataset, 1 );
+
+    train_range = 1 : floor( num_instances * 0.9 );
+    test_range  = train_range( end ) + 1 : num_instances;
+
+    train_dataset = dataset( train_range, : );
+    test_dataset  = dataset( test_range, : );
+
+    mlp = SimpleMLP( 'trainX', train_dataset( :, 2 : end ), ...
+                     'trainY', train_dataset( :, 1 ), ...
+                     'testX',  test_dataset( :, 2 : end ), ...
+                     'testY',  test_dataset( :, 1 ));
+
+    mlp = mlp.train();
+
+    expected_label        = test_dataset( 1, 1 );
+    [ val actual_output ] = max( mlp.predict( test_dataset( 1, 2 : end ) ) );
+
+    verifyEqual( testCase, expected_label, actual_output );
 end
