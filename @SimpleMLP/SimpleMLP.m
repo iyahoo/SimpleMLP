@@ -247,9 +247,9 @@ classdef SimpleMLP
         % \/
         %
         % Label matrix:
-        % 1 0 0 1 0 0
-        % 0 1 0 0 1 0
-        % 0 0 1 0 0 1
+        %  1 -1 -1  1 -1 -1
+        % -1  1 -1 -1  1 -1
+        % -1 -1  1 -1 -1  1
 
             target_label = getfield( obj, target );
             count_data   = size( target_label, 1 );
