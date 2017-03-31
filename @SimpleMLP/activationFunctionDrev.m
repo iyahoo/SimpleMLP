@@ -1,9 +1,8 @@
 function y = activationFunctionDrev( x, selector )
     assert( isnumeric( x ), ...
             'x is type %s, not numeric', class( x ) );
-
     assert( ischar( selector ), ...
-            'selector is type %s, not numeric', class( selector ) );
+            'selector is type %s, not char', class( selector ) );
 
     switch lower( selector )
       case { 'sig', 'sigmoid' }
