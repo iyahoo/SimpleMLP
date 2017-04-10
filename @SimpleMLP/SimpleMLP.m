@@ -156,7 +156,7 @@ classdef SimpleMLP
                                'save_file_name', '', ...
                                'expansion', 'epsc' ...
                                );
-            [ options f ] = optionsMaker( defaults, varargin );
+            [ options f ] = SimpleMLP.optionsMaker( defaults, varargin );
 
             for i = 1 : length( f );
                 eval( [ f{ i }, ' = options.', f{ i }, ';' ] );
@@ -391,7 +391,7 @@ classdef SimpleMLP
     end
 
     % Helper
-    methods ( Access = private, Static )
+    methods ( Access = public, Static )
         % For making default variables
         % implemented in file optionsMaker.m
         [ options field_names ] = optionsMaker( defaults, vara );
