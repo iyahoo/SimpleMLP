@@ -36,7 +36,6 @@ function initialParameterTest( testCase )
 
     mlp = testCase.TestData.mlp;
 
-    % You can see default parameters in SimpleMLP.m Line 40 - 47
     % About the way how to set parameters, please see 'testOtherModelTest'
     verifyEqual( testCase, mlp.learning_rate, 0.01 );
     verifyEqual( testCase, mlp.count_hneuron, 5 );

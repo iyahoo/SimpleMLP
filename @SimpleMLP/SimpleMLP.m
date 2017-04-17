@@ -111,7 +111,7 @@ classdef SimpleMLP
 
             f = fieldnames( options );
 
-            for i = 1 : length( f );
+            for i = 1 : length( f )
                 %% Assign parameters to fields of model
                 %% e.g. obj.trainX = options.trainX;
                 eval( ['obj.' f{ i } ' = options.' f{ i } ';'] );
@@ -147,7 +147,6 @@ classdef SimpleMLP
 
             %%
             obj.is_trained = false;
-
         end
 
         function obj = addingBiasNeurons( obj )
